@@ -1,42 +1,79 @@
-Welcome to your new TanStack Start app! 
 
-# Getting Started
+# Skild – The Registry for Agentic Intelligence
 
-To run this application:
+Skild é um registro de habilidades agenticas ("skills") para agentes, bots e fluxos de IA. Descubra, publique e opere capacidades reutilizáveis de agentes a partir de um workspace orientado a rotas.
+
+## Principais Tecnologias
+
+- [TanStack Start](https://tanstack.com/start) (React, TanStack Router, TanStack Query)
+- [Firebase Data Connect](https://firebase.google.com/docs/data-connect) (PostgreSQL gerenciado)
+- [Clerk](https://clerk.com) para autenticação
+- [Tailwind CSS](https://tailwindcss.com/) para estilos
+- [Biome](https://biomejs.dev/) para lint/format
+
+## Como rodar localmente
 
 ```bash
 npm install
 npm run dev
 ```
+Acesse http://localhost:3000
 
-# Building For Production
-
-To build this application for production:
+## Build de produção
 
 ```bash
 npm run build
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+## Testes
 
 ```bash
 npm run test
 ```
 
-## Styling
+## Lint e formatação
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+```bash
+npm run lint
+npm run format
+npm run check
+```
 
-### Removing Tailwind CSS
+## Estrutura de dados
 
-If you prefer not to use Tailwind CSS:
+O backend usa Firebase Data Connect com PostgreSQL. O schema principal está em `dataconnect/schema/schema.gql`:
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `npm install @tailwindcss/vite tailwindcss -D`
+- **User**: clerkId, email, username, imageUrl
+- **Skill**: id, author (User), title, description, tags, installCommand, promptConfig, usageExample, createdAt
+
+## Autenticação
+
+O login é feito via Clerk. Configure a variável `VITE_CLERK_PUBLISHABLE_KEY` no `.env.local`.
+
+## Desenvolvimento
+
+- Rotas em `src/routes/`
+- Componentes em `src/components/`
+- Integração Data Connect em `src/lib/firebase.ts`
+- Geração de tipos/SDK em `src/dataconnect-generated/`
+
+## Skills e Data Connect
+
+As operações de leitura e escrita de skills são feitas via Data Connect. Veja exemplos de queries em `dataconnect/Skill_read.gql` e mutations em `dataconnect/Skill_insert.gql`.
+
+## Estilos
+
+O projeto usa Tailwind CSS. O arquivo principal de estilos é `src/styles.css`.
+
+## Observações
+
+- O projeto é orientado a rotas (file-based routing com TanStack Router)
+- O layout global está em `src/routes/__root.tsx`
+- O Navbar está em `src/components/Navbar.tsx`
+
+## Créditos
+
+Projeto baseado em TanStack Start, com integrações para Firebase Data Connect e Clerk.
 
 ## Linting & Formatting
 
@@ -68,16 +105,38 @@ npm run check
 
 ### Protecting a route
 
-Wrap any component in `<SignedIn>` / `<SignedOut>`:
+## Lint e formatação
+
+Este projeto utiliza o [Biome](https://biomejs.dev/) para lint e formatação. Os scripts disponíveis são:
+
+```bash
+npm run lint
+npm run format
+npm run check
+```
+
+## Configuração do Clerk
+
+1. Cadastre-se em [clerk.com](https://clerk.com) e crie uma aplicação
+2. Copie a **Publishable Key** do painel do Clerk
+3. Defina no seu `.env.local`:
+   ```bash
+   VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+   ```
+4. Acesse rotas protegidas após rodar `npm run dev`
+
+O `<ClerkProvider>` em `src/integrations/clerk/provider.tsx` gerencia o contexto de autenticação. O `<UserButton>` aparece no cabeçalho quando autenticado, e o botão de login quando não autenticado.
+
+Para proteger uma rota, utilize os componentes `<SignedIn>` e `<SignedOut>` do Clerk:
 
 ```tsx
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
 
-function ProtectedPage() {
+function PaginaProtegida() {
   return (
     <>
       <SignedIn>
-        <YourPageContent />
+        <SeuConteudo />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
@@ -87,173 +146,43 @@ function ProtectedPage() {
 }
 ```
 
-For server-side checks (route loaders, server functions), see the Clerk docs on [`auth()`](https://clerk.com/docs/references/backend/auth).
+No deploy, lembre-se de usar as chaves de produção e configurar o domínio no painel do Clerk.
 
-### Production checklist
+## Componentes Shadcn
 
-- Replace the test keys with **production keys** from a dedicated production Clerk instance
-- Configure your production domain under **Domains** in the Clerk dashboard
-- Set up social providers (Google, GitHub, etc.) under **User & Authentication → Social Connections**
-
-
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+Adicione componentes com:
 
 ```bash
 pnpm dlx shadcn@latest add button
 ```
 
+## Rotas
 
+O projeto usa [TanStack Router](https://tanstack.com/router) com roteamento baseado em arquivos. As rotas ficam em `src/routes`.
 
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+Para adicionar uma rota, crie um novo arquivo em `src/routes/`. Use o componente `Link` para navegação SPA:
 
 ```tsx
 import { Link } from "@tanstack/react-router";
+
+<Link to="/sobre">Sobre</Link>
 ```
 
-Then anywhere in your JSX you can use it like so:
+O layout global está em `src/routes/__root.tsx`.
 
-```tsx
-<Link to="/about">About</Link>
-```
+## Funções de servidor e API
 
-This will create a link that will navigate to the `/about` route.
+Você pode criar funções de servidor e rotas de API usando TanStack Start. Veja a documentação oficial para exemplos avançados.
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
+## Carregamento de dados
 
-### Using A Layout
+Use TanStack Query ou o loader das rotas para buscar dados do backend. Veja exemplos em `src/routes/index.tsx`.
 
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
+# Arquivos demo
 
-Here is an example layout that includes a header:
+Arquivos com prefixo `demo` podem ser removidos. Eles servem apenas como exemplo.
 
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+# Saiba mais
 
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
+Mais informações em [TanStack](https://tanstack.com) e [TanStack Start](https://tanstack.com/start).
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
