@@ -11,4 +11,16 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
-.vscode
+.vscode/
+skild-af7cd-firebase-adminsdk-fbsvc-d9ddd14834.json
+# firebase data connect
+.firebase
+firebase.json
+.firebaserc
+dataconnect/
+dataconnect-debug.log
+
+.agents/
+data.txt
+user.json
+skills-lock.json
